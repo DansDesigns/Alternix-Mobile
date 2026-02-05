@@ -1,6 +1,6 @@
 # Alternix-Mobile
-A Linux Desktop Environment designed for OSM-Phone.
-![Alternix Desktop](https://github.com/DansDesigns/OSM-Phone/blob/main/OS%20Concepts/Alternix-Mobile.png)
+A Linux Mobile-Desktop Hybrid Environment designed for OSM-Phone.
+![Alternix Desktop](https://github.com/DansDesigns/OSM-Phone/blob/main/OS%20Concepts/Alternix_Mobile.png)
 Using Qtile & custom Qt5 app launcher, app switcher, quick settings, file editor/viewer & drawing app
 
 
