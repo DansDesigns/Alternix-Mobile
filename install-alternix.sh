@@ -2,8 +2,14 @@
 set -e
 
 echo "=============================================="
-echo "  Alternix / OSM-Phone Installer"
+echo "   Alternix-Mobile / OSM-PhoneOS Installer"
 echo "=============================================="
+echo "-------> Teaching Penguins how to fly! <-------"
+echo " "
+echo "--------------------------------------------------------------------"
+echo " Setup can take a while, be sure to have a cuppa & some good music!"
+echo "--------------------------------------------------------------------"
+echo ""
 echo "-------------------------------------------"
 echo "              User Setup"
 echo "-------------------------------------------"
@@ -48,28 +54,27 @@ echo ""
 echo "User setup complete. Username set to: $TARGET_USER"
 echo ""
 
-#echo "-[System] Installing XLibre.."
-#chmod +x install_xlibre.sh
-#sudo ./install_xlibre.sh
+
 
 # ────────────────────────────────────────────────
 # 1. Install apps & dependencies
 # ────────────────────────────────────────────────
 echo "[1/10] Installing system dependencies..."
+echo " "
 
-echo "- Adding Nala dependencies.."
+echo "[System] Adding Nala dependencies..."
 echo "deb http://deb.volian.org/volian/ nala main" | sudo tee /etc/apt/sources.list.d/volian.list
 wget -qO - https://deb.volian.org/volian/volian.gpg | sudo tee /etc/apt/trusted.gpg.d/volian.gpg
 
 
-echo "- Installing Nala.."
+echo "[System] Installing Nala.."
 sudo apt install nala nala -y
 
+echo "[System] Removing nala Install Components.."
 sudo rm /etc/apt/sources.list.d/volian.list
 sudo rm /etc/apt/trusted.gpg.d/volian.gpg
 
-
-#echo "- Converting APT to Nala.."
+#echo "[System] Converting APT to Nala.."
 #cat <<EOF >> "$HOME/.bashrc"
 #apt() { 
 #  command nala "$@"
@@ -84,7 +89,7 @@ sudo rm /etc/apt/trusted.gpg.d/volian.gpg
 #}
 #EOF
 #
-#echo "- Adding root Nala.."
+#echo "[System] Adding root Nala.."
 #sudo cat <<EOF >> "/root/.bashrc"
 #apt() { 
 #  command nala "$@"
@@ -98,34 +103,59 @@ sudo rm /etc/apt/trusted.gpg.d/volian.gpg
 #  fi
 #}
 #EOF
-#echo "- Nala conversion complete.."
+#echo "[System] Nala conversion complete.."
 
-echo "- Running Nala Server Fetch.."
+echo "[System] Running nala server fetch.."
+echo " "
+echo "----------------------------------------"
+echo " PLEASE ENTER 1 2 3 4 WHEN PROMPTED"
+echo "----------------------------------------"
+echo " "
 sudo nala fetch
 
+echo "-[System] Installing XLibre.."
+sudo nala install -y ca-certificates curl
 
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://xlibre-deb.github.io/key.asc | sudo tee /etc/apt/keyrings/xlibre-deb.asc
+sudo chmod a+r /etc/apt/keyrings/xlibre-deb.asc
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/xlibre-deb.sources
+Types: deb deb-src
+URIs: https://xlibre-deb.github.io/debian/
+Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+Components: main
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/xlibre-deb.asc
+EOF
 
 sudo nala update
+sudo nala install xlibre -y
+
+
+
+echo "[System] Installing Required Components.."
 sudo nala install -y \
-    fastfetch qtbase5-dev qt5-qmake qtdeclarative5-dev \
+    fastfetch qtile qtbase5-dev qt5-qmake qtbase5-dev-tools qtdeclarative5-dev \
     fonts-noto-color-emoji libxcomposite-dev libxrender-dev libxfixes-dev \
-    xwallpaper pkg-config libpoppler-qt5-dev htop python3-pip curl git \
-    python3-venv picom qtile redshift onboard samba xdotool alacritty \
+    xwallpaper pkg-config libpoppler-qt5-dev htop python3-pip curl git fuse\
+    python3-venv picom redshift onboard samba xdotool alacritty aria2 sqlite3\
     synaptic brightnessctl pavucontrol pulseaudio alsa-utils flatpak libevdev-dev\
     snapd power-profiles-daemon xprintidle libx11-dev libxtst-dev ntfs-3g \
-    kalk vlc qt5-style-kvantum network-manager
+    kalk vlc qt5-style-kvantum network-manager libpolkit-agent-1-dev \
+    libpolkit-gobject-1-dev peazip aptitude timeshift xdg-utils python3-lxml\
+    python3-yaml python3-dateutil python3-pyqt5 python3-packaging python3-request
 
 
+echo "[System] Installing Mobile Telephony Components.."
 sudo nala install -y --no-install-recommends plasma-dialer spacebar
 
+echo "[System] Installing Bauh Application Manager.."
+sudo pip3 install bauh --break-system-packages
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# RPI NON-COMPATIBLE - Comment out:
-
-#sudo nala install thermald
-#sudo systemctl enable --now power-profiles-daemon
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ────────────────────────────────────────────────
+#  Install Flatpaks
+# ────────────────────────────────────────────────
 
 echo "[System] Installing Flatpaks.."
 
@@ -137,18 +167,22 @@ sudo rm -r /var/cache/apt/archives
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 echo "[System] Installing Flatpaks..."
 
+echo "[System] Installing Flatpaks..."
+
 # Install flatpaks
-sudo flatpak install -y flathub com.github.joseexposito.touche
-sudo flatpak install -y flathub io.github.kolunmi.Bazaar
-#sudo flatpak install -y flathub net.retrodeck.retrodeck
-sudo flatpak install -y flathub org.kde.kweather
-#sudo flatpak install -y flathub net.sourceforge.ExtremeTuxRacer
-#sudo flatpak install -y flathub io.github.swordpuffin.hunt
-#sudo flatpak install -y flathub com.github.avojak.warble
-sudo flatpak install -y flathub org.kde.qrca
+flatpak install -y flathub com.github.joseexposito.touche
+flatpak install -y flathub org.kde.kweather
+flatpak install -y flathub org.kde.qrca
+flatpak install -y flathub com.github.xournalpp.xournalpp
 
+# Flatpak Games (disabled by default)
+#flatpak install -y flathub net.retrodeck.retrodeck
+#flatpak install -y flathub net.sourceforge.ExtremeTuxRacer
+#flatpak install -y flathub io.github.swordpuffin.hunt
+#flatpak install -y flathub com.github.avojak.warble
 
-# Install Snaps
+echo "[System] Installing Bauh Application Manager.."
+sudo pip3 install bauh --break-system-packages
 
 # ────────────────────────────────────────────────
 # Install all .deb packages in ~/Alternix/installers/
@@ -653,6 +687,16 @@ Icon=upgrade
 Categories=System;
 EOF
 
+echo "• Creating bauh Shortcut..."
+sudo tee /usr/share/applications/bauh.desktop >/dev/null <<EOF
+[Desktop Entry]
+Type=Application
+Name=Apps (bauh)
+Comment=Application Manager
+Exec=bauh
+Icon=bauh
+Categories=System;
+EOF
 
 # ────────────────────────────────────────────────
 # Create Brave YouTube WebApp launcher
@@ -1012,10 +1056,34 @@ rm -rf "$ALT_ROOT"
 echo " "
 
 echo "=============================================="
-echo "     Alternix installation complete!"
+echo "     Alternix-mobile installation complete!"
 echo "=============================================="
+echo " "
 echo "Everything installed to /usr/local/bin/"
+echo " "
 echo "Autologin + startx enabled for user: $TARGET_USER"
+echo " "
 echo ".xinitrc configured for Qtile."
-echo "Rebooting to Alternix."
-sudo reboot now
+echo " "
+echo "Press 1 to Restart"
+echo "Press 2 to Continue to Shell"
+echo ""
+
+while true; do
+    read -n 1 -s -r KEY
+    if [[ "$KEY" == "1" ]]; then
+        echo ""
+        echo "Restarting system..."
+        sleep 1
+        sudo reboot
+        break
+    elif [[ "$KEY" == "2" ]]; then
+        echo ""
+        echo "Continuing to shell..."
+        sudo systemctl restart getty@tty1
+        break
+    else
+        echo ""
+        echo "Invalid choice. Press 1 to Restart or 2 to Exit to Shell."
+    fi
+done
